@@ -1,0 +1,52 @@
+From 1f0a2d0d2c8e4f95a6a7e4b1f4a2f0c9f7e2d1a3 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 28 Feb 2026 12:25:00 +0800
+Subject: [PATCH] mmc: disable CQE/HSQ for debug
+
+Temporarily disable CQE/HSQ paths to diagnose RK3528 eMMC aborts in
+mmc_mq_init_request/mmc_blk_probe.
+---
+ drivers/mmc/core/mmc.c | 11 +++++++++++
+ drivers/mmc/core/sd.c  |  5 +++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
+index 9f9d2a1e7b8a..b7c1df32e8aa 100644
+--- a/drivers/mmc/core/mmc.c
++++ b/drivers/mmc/core/mmc.c
+@@ -1983,6 +1983,17 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
+ 	/*
+ 	 * Enable Command Queue if supported. Note that Packed Commands cannot
+ 	 * be used with Command Queue.
+ 	 */
++	/* DEBUG: force disable CQE/HSQ to narrow down eMMC abort root cause. */
++	host->caps2 &= ~MMC_CAP2_CQE;
++	host->cqe_enabled = false;
++	host->hsq_enabled = false;
++	card->ext_csd.cmdq_support = false;
++	card->ext_csd.cmdq_en = false;
++	card->ext_csd.cmdq_depth = 0;
++	if (host->cqe_ops)
++		pr_warn("%s: debug: force disable CQE/HSQ\n", mmc_hostname(host));
++
+ 	card->ext_csd.cmdq_en = false;
+ 	if (card->ext_csd.cmdq_support && host->caps2 & MMC_CAP2_CQE) {
+ 		err = mmc_cmdq_enable(card);
+diff --git a/drivers/mmc/core/sd.c b/drivers/mmc/core/sd.c
+index 3eaf1524f0bd..8cf824a6e31d 100644
+--- a/drivers/mmc/core/sd.c
++++ b/drivers/mmc/core/sd.c
+@@ -1563,6 +1563,11 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
+ 		if (err)
+ 			goto free_card;
+ 	}
++
++	/* DEBUG: force disable CQE/HSQ in SD path as well. */
++	host->caps2 &= ~MMC_CAP2_CQE;
++	host->cqe_enabled = false;
++	host->hsq_enabled = false;
+
+ 	if (host->cqe_ops && !host->cqe_enabled) {
+ 		err = host->cqe_ops->cqe_enable(host, card);
+--
+2.43.0

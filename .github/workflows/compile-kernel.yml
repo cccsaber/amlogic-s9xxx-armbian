@@ -82,6 +82,16 @@ on:
         options:
           - -ophub
           - -yourname
+      kernel_patch:
+        description: "Kernel patch directory"
+        required: false
+        default: "compile-kernel/tools/patch"
+        type: string
+      auto_patch:
+        description: "Auto apply kernel patches"
+        required: false
+        default: true
+        type: boolean
 
 env:
   TZ: Etc/UTC
@@ -176,6 +186,8 @@ jobs:
           kernel_package: ${{ inputs.kernel_package }}
           kernel_sign: ${{ inputs.kernel_sign }}
           kernel_toolchain: ${{ inputs.kernel_toolchain }}
+          kernel_patch: ${{ inputs.kernel_patch }}
+          auto_patch: ${{ inputs.auto_patch }}
           ccache_clear: ${{ inputs.ccache_clear }}
           docker_hostpath: /builder
           docker_image: ophub/armbian-${{ inputs.docker_image }}:arm64
