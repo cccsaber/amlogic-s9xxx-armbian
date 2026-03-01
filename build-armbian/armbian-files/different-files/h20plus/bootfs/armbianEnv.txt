@@ -1,0 +1,10 @@
+verbosity=1
+bootlogo=false
+fdtfile=rockchip/rk3528-h20plus-r6b.dtb
+rootdev=/dev/mmcblk0p2
+rootfstype=ext4
+rootflags=rw,errors=remount-ro
+extraargs=rw rootwait
+console=both
+consoleargs=console=ttyFIQ0
+overlay_prefix=rk3528
