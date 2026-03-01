@@ -26,6 +26,7 @@ on:
         type: choice
         options:
           - all
+          - h20plus
           - first50
           - range50_100
           - range100_150
